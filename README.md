@@ -1,5 +1,5 @@
-# Myo-HMI-Android
+A mobile Android application used to implement SFSU ICE lab Myo Human Machine Interface Gesture Recognition Algorithms. The original code was developed by Alex D. and other graduate and undergraduate students in the lab.
 
-A mobile Android application used to implement SFSU ICE lab Myo Human Machine Interface Gesture Recognition Algorithms
+This application is to be paired with Thalmic Labs Myo Armband, a low cost emg/imu wearable sensor. The app connects to the armband via BLE and reads EMG data in real time. EMG signals are subjected to time domain feature extraction and passed to Machine Learning algorithms with the help of the SMILE Java Machine Learning libraries. After proper training, the app can predict most hand gestures.
 
-This application is to be paired with Thalmic Labs Myo Armband, a low cost emg/imu wearable sensor. The app connects to the armband via bluetooth and reads EMG data in real time. EMG signals are subjected to time domain feature extraction and passed to Machine Learning algorithms with the help of the SMILE Java Machine Learning libraries. After proper training, the app can predict most hand gestures.
+This version of the code is being developed to enable an additional Bluetooth connection to an ESP32 microcontroller, which is controlling a HACKberry Arm. The goal is to maintain 2 connections with a BLE device (Myo Armband) and a Bluetooth device (Hackberry Arm) and use the predictions from the Machine Learning model to control the HACKberry Arm. The arm should be able to mimic the user's hand gestures in real-time.
