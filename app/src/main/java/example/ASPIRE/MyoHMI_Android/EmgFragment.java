@@ -5,10 +5,14 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothSocket;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
@@ -29,6 +33,11 @@ import android.widget.ToggleButton;
 
 import com.echo.holographlibrary.LineGraph;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.util.UUID;
+
 import static android.content.Context.BLUETOOTH_SERVICE;
 import static example.ASPIRE.MyoHMI_Android.R.id.conncectionProgress;
 
@@ -39,16 +48,22 @@ import static example.ASPIRE.MyoHMI_Android.R.id.conncectionProgress;
 public class EmgFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "Tab2Fragment";
 
+    private static final UUID BLUETOOTH_UUID =
+            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
     private static final int REQUEST_ENABLE_BT = 1;
     Activity activity;
     private Handler mHandler;
     private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothGatt mBluetoothGatt;
+    private BluetoothGatt mBluetoothGatt; // BLE connection
+    private BluetoothSocket mBluetoothSocket; // Bluetooth connection
+    private OutputStream os; // Output Stream for Bluetooth connection
     private TextView myoConnectionText;
     private TextView connectingText;
     private MyoGattCallback mMyoCallback;
     private MyoCommandList commandList = new MyoCommandList();
     private String deviceName;
+    private String deviceHack;
     private LineGraph graph;
     private Plotter plotter;
     private final View.OnTouchListener changeColorListener = new View.OnTouchListener() {
@@ -96,12 +111,16 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
     private ScanCallback scanCallback = new ScanCallback() {
     };
     private boolean click = true;
+
+    // Scan and connect to the selected Myo Armband (BLE)
     private ScanCallback mScanCallback = new ScanCallback() {
         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             BluetoothDevice device = result.getDevice();
             if (deviceName.equals(device.getName())) {
+                Log.d(TAG, "Connecting to BLE device...");
+
                 BluetoothLeScanner scanner = mBluetoothAdapter.getBluetoothLeScanner();
                 if (scanner != null) {
                     scanner.stopScan(mScanCallback);
@@ -146,15 +165,15 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
 
         BluetoothManager mBluetoothManager = (BluetoothManager) getActivity().getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter = mBluetoothManager.getAdapter();
-//        mLEScanner = mBluetoothAdapter.getBluetoothLeScanner();
-
 
         Intent intent = getActivity().getIntent();
-        deviceName = intent.getStringExtra(ListActivity.TAG);
+        deviceName = intent.getStringExtra(ListActivity.MYO);
+        deviceHack = intent.getStringExtra(ListActivity.HACK);
 
+        Log.d(TAG, "Incoming: " + deviceName + ", " + deviceHack);
 
         if (deviceName != null) {
-
+            Log.d(TAG, "Incoming: " + deviceName);
             // Ensures Bluetooth is available on the device and it is enabled. If not,
             // displays a dialog requesting user permission to enable Bluetooth.
             if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
@@ -187,7 +206,6 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
                     // Device Bluetooth is disabled; check and prompt user to enable.
                 }
             }
-
 
 //        IntentFilter filter = new IntentFilter(mBluetoothAdapter.ACTION_STATE_CHANGED);
 //        getActivity().registerReceiver(mReceiver, filter);
@@ -242,6 +260,43 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
                 }
             });
         }
+
+        if(deviceHack != null) {
+            Log.d(TAG, "Incoming: " + deviceHack);
+            prog.setVisibility(View.VISIBLE);
+            connectingText.setVisibility(View.VISIBLE);
+
+            BluetoothDevice mBluetoothHack = mBluetoothAdapter.getRemoteDevice(deviceHack);
+            int counter = 0;
+            do{
+                try {
+                    mBluetoothSocket = mBluetoothHack.createRfcommSocketToServiceRecord(BLUETOOTH_UUID);
+                    mBluetoothSocket.connect();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                counter++;
+            }while(!mBluetoothSocket.isConnected() && counter<5);
+
+            try {
+                os = mBluetoothSocket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            byte[] bytes;
+            for(int i=0; i<5; i++){
+                bytes = (String.valueOf(i)).getBytes(Charset.defaultCharset());
+                try {
+                    os.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+        }
+
         return v;
     }
 

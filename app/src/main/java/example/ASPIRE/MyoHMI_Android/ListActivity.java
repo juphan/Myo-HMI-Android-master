@@ -360,13 +360,15 @@ public class ListActivity extends AppCompatActivity {
     }
 
     // Connect to your selected BLE and Bluetooth devices
+    // Send name of selected BLE device and hardware address of selected Bluetooth device to MainActivity
+    // EmgFragment.java uses that info to establish BL/BLE connections
     private void connect_BL_BLE(){
         Log.d(TAG, "Selected BLE: " + myoName);
         Log.d(TAG, "Selected BL: " + hackAddress);
 
-        if(myoName == null){
-            Toast.makeText(getApplicationContext(), "No Myo Armband was selected. Please try again.", Toast.LENGTH_SHORT).show();
-        }else{
+        //if(myoName == null){
+        //    Toast.makeText(getApplicationContext(), "No Myo Armband was selected. Please try again.", Toast.LENGTH_SHORT).show();
+        //}else{
             if(hackAddress == null){
                 Toast.makeText(getApplicationContext(),  myoName + " is connecting...", Toast.LENGTH_SHORT).show();
             }else{
@@ -380,7 +382,7 @@ public class ListActivity extends AppCompatActivity {
             intent.putExtra(HACK, hackAddress);
 
             startActivity(intent);
-        }
+        //}
     }
 
     private void showPhoneStatePermission() {
