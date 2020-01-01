@@ -29,6 +29,7 @@ public class SendToHACKBerry extends Service {
     private String deviceHack = null;
 
     private static String gesture;
+    private Handler mHandler = new Handler();
 
     // When service is started
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -39,8 +40,6 @@ public class SendToHACKBerry extends Service {
         Log.d(TAG, "Incoming: " + deviceHack);
 
         if(deviceHack != null) {
-            Log.d(TAG, "Incoming: " + deviceHack);
-
             // Connect to the selected Bluetooth device
             BluetoothDevice mBluetoothHack = mBluetoothAdapter.getRemoteDevice(deviceHack);
             try {
@@ -57,17 +56,8 @@ public class SendToHACKBerry extends Service {
                 e.printStackTrace();
             }
 
-            // Send out a test string
-            byte[] bytes;
-            for(int i=0; i<5; i++){
-                bytes = (String.valueOf(i)).getBytes(Charset.defaultCharset());
-                try {
-                    os.write(bytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
+            // Send predictions to Bluetooth device
+            sendPrediction.run();
         }
 
         return Service.START_NOT_STICKY;
@@ -81,5 +71,25 @@ public class SendToHACKBerry extends Service {
     public static void getPrediction(String s){
         gesture = s;
     }
+
+    private Runnable sendPrediction = new Runnable(){
+        @Override
+        public void run(){
+            // Send out a test string
+            byte[] bytes;
+            for(int i=0; i<5; i++){
+                bytes = (String.valueOf(i)).getBytes(Charset.defaultCharset());
+                try {
+                    os.write(bytes);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Repeat every 1s
+            mHandler.removeCallbacks(this);
+            mHandler.postDelayed(this, 1000);
+        }
+    };
 
 }
