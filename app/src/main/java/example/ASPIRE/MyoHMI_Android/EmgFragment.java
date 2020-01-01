@@ -48,22 +48,16 @@ import static example.ASPIRE.MyoHMI_Android.R.id.conncectionProgress;
 public class EmgFragment extends Fragment implements View.OnClickListener {
     private static final String TAG = "Tab2Fragment";
 
-    private static final UUID BLUETOOTH_UUID =
-            UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
     private static final int REQUEST_ENABLE_BT = 1;
     Activity activity;
     private Handler mHandler;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothGatt mBluetoothGatt; // BLE connection
-    private BluetoothSocket mBluetoothSocket; // Bluetooth connection
-    private OutputStream os; // Output Stream for Bluetooth connection
     private TextView myoConnectionText;
     private TextView connectingText;
     private MyoGattCallback mMyoCallback;
     private MyoCommandList commandList = new MyoCommandList();
     private String deviceName;
-    private String deviceHack;
     private LineGraph graph;
     private Plotter plotter;
     private final View.OnTouchListener changeColorListener = new View.OnTouchListener() {
@@ -168,9 +162,8 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
 
         Intent intent = getActivity().getIntent();
         deviceName = intent.getStringExtra(ListActivity.MYO);
-        deviceHack = intent.getStringExtra(ListActivity.HACK);
 
-        Log.d(TAG, "Incoming: " + deviceName + ", " + deviceHack);
+        Log.d(TAG, "Incoming: " + deviceName);
 
         if (deviceName != null) {
             Log.d(TAG, "Incoming: " + deviceName);
@@ -259,42 +252,6 @@ public class EmgFragment extends Fragment implements View.OnClickListener {
                     clickedvib(v);
                 }
             });
-        }
-
-        if(deviceHack != null) {
-            Log.d(TAG, "Incoming: " + deviceHack);
-            prog.setVisibility(View.VISIBLE);
-            connectingText.setVisibility(View.VISIBLE);
-
-            BluetoothDevice mBluetoothHack = mBluetoothAdapter.getRemoteDevice(deviceHack);
-            int counter = 0;
-            do{
-                try {
-                    mBluetoothSocket = mBluetoothHack.createRfcommSocketToServiceRecord(BLUETOOTH_UUID);
-                    mBluetoothSocket.connect();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                counter++;
-            }while(!mBluetoothSocket.isConnected() && counter<5);
-
-            try {
-                os = mBluetoothSocket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            byte[] bytes;
-            for(int i=0; i<5; i++){
-                bytes = (String.valueOf(i)).getBytes(Charset.defaultCharset());
-                try {
-                    os.write(bytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-
         }
 
         return v;

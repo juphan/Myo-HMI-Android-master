@@ -116,6 +116,12 @@ public class MainActivity extends AppCompatActivity {
         startService(new Intent(this, SendToUnity.class));
         receiveFromUnity = new ReceiveFromUnity();
         registerReceiver(receiveFromUnity, new IntentFilter("com.test.sendintent.IntentFromUnity"));
+
+        // Send Predictions to a Bluetooth device (HACKberry Arm) - Justin P.
+        Intent mIntent = new Intent(this, SendToHACKBerry.class);
+        Intent bIntent = getIntent();
+        mIntent.putExtra("KEY", bIntent.getStringExtra(ListActivity.HACK));
+        startService(mIntent);
     }
 
     /***********************TOP ADDED BY CHARLES FOR SWIPEABLE TABS***************************/

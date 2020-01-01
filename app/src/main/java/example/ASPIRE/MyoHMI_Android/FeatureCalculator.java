@@ -156,7 +156,8 @@ public class FeatureCalculator {
         SendToUnity.setGesture(gestures.get(prediction));
         //SendToUnity.setQuaternion((float) inFeatemg.getValue(0).byteValue(), (float) inFeatemg.getValue(1).byteValue(), (float) inFeatemg.getValue(2).byteValue(), (float) inFeatemg.getValue(3).byteValue());
 
-
+        // Send predicted Gesture to Bluetooth (HACKberry Arm)
+        SendToHACKBerry.getPrediction(gestures.get(prediction));
 
         if (prediction == -1) {
             return;
