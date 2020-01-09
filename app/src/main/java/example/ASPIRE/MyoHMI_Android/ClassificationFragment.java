@@ -48,6 +48,7 @@ public class ClassificationFragment extends Fragment {
 
     //create an ArrayList object to store selected items
     public static ArrayList<String> selectedItems = new ArrayList<>();
+    public static ArrayList<String> selectedCommands = new ArrayList<>();
     private static SaveData saver;
     //    Runnable r1;
     EditText GetValue;
@@ -70,10 +71,20 @@ public class ClassificationFragment extends Fragment {
             "Fist",
             "Point",
             "Open Hand",
-            "Wave In",
-            "Wave Out",
+            "Wave-In",
+            "Wave-Out",
             "Supination",
             "Pronation"
+    };
+    String[] ListCommands = new String[]{
+            "P90 T100 O140",  // Rest
+            "P30 T30 O30",    // Fist
+            "P130 T30 O30",   // Point
+            "P140 T140 O150", // Open Hand
+            "P60 T30 O60",    // Wave-In
+            "P100 T30 O100",  // Wave-Out
+            "P130 T140 O30",  // Supination
+            "P30 T30 O150"    // Pronation
     };
     String[] classifier_options = new String[]{
             "LDA",
@@ -186,16 +197,20 @@ public class ClassificationFragment extends Fragment {
 
         listview_Classifier.setItemChecked(0, true);
 
+        // Add default selected gestures to an arraylist
         selectedItems = new ArrayList<>();
         for (int i = 0; i < ListElements.length; i++) {
             listview.setItemChecked(i, true);
             selectedItems.add(i, adapter.getItem(i));
+            selectedCommands.add(i, ListCommands[i]);
         }
 
+        // Add/Remove selected gestures in the arraylist
         listview.setOnItemClickListener((parent, view, position, id) -> {
             String selectedItem = ((TextView) view).getText().toString();
             if (selectedItems.contains(selectedItem)) {
-                Log.d("Removing", String.valueOf(selectedItem));
+                Log.d("Removing", selectedItem);
+                selectedCommands.remove(selectedItems.indexOf(selectedItem));
                 selectedItems.remove(selectedItem);
                 return;
             }
@@ -239,6 +254,7 @@ public class ClassificationFragment extends Fragment {
                                 for (int i = 0; i < selectedItems.size(); ++i) {
                                     String item = selectedItems.get(i);
                                     for (int x = 0; x <= item.length(); ++x) {
+                                        selectedCommands.remove(selectedItems.indexOf(item));
                                         selectedItems.remove(item); //remove deselected item from the list of selected items
                                         listview.setItemChecked(x, false);
                                         adapter.remove(item);
@@ -301,20 +317,15 @@ public class ClassificationFragment extends Fragment {
         trainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                if (MyoGattCallback.myoConnected == null) {
-//                    AlertDialog alertDialog = new AlertDialog.Builder(getActivity()).create();
-//                    alertDialog.setTitle("Myo not detected");
-//                    alertDialog.setMessage("Myo armband should be connected before training gestures.");
-//                    alertDialog.setIcon(R.drawable.stop_icon);
-//                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            Toast.makeText(getContext(), "On the top right corner, select 'Connect'", Toast.LENGTH_LONG).show();
-//                        }
-//                    });
-//                    alertDialog.show();
-//                } else {
+                Intent intent = getActivity().getIntent();
+                String deviceHack = intent.getStringExtra(ListActivity.HACK);
+
+                Log.d("ClassificationFragment", "Incoming: " + deviceHack);
+                if(deviceHack != null){
+                    fcalc.startBTConnection(deviceHack);
+                }
+
                 countdown();
-//                }
             }
         });
 
@@ -335,6 +346,7 @@ public class ClassificationFragment extends Fragment {
         count = 4;
         gestureCounter = 0;
         fcalc.sendClasses(selectedItems);
+        fcalc.sendCommands(selectedCommands);
         Runnable countdown = new Runnable() {
             @Override
             public void run() {

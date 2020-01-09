@@ -7,8 +7,6 @@ import android.util.Log;
 
 public class ReceiveFromUnity extends BroadcastReceiver {
 
-
-
     // text is updated by Unity
     public static String text = "No Vibrate";
     private static MyoGattCallback mMyoCallback;

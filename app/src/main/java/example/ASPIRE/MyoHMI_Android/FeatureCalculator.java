@@ -21,6 +21,10 @@ import java.util.List;
  */
 
 public class FeatureCalculator {
+
+    // HACKberry arm Bluetooth Connection
+    public static BluetoothConnection mBluetoothConnection;
+
     public static Activity classAct;
     public static TextView liveView, status;
     public static ProgressBar progressBar;
@@ -49,7 +53,10 @@ public class FeatureCalculator {
     private static Classifier classifier = new Classifier();
     private static int currentClass = 0;
     private static View view;
-    private static List<String> gestures;
+    private static List<String> gestures;      // Defined gesture classes
+    private static List<String> hackCommands;  // Commands to HACKberry Arm
+    private static int[] decisions = new int[10];  // Stores 10 recent predictions
+    private static int counter;                    // Best out of 10 predictions gets sent to the HACKberry Arm
     private static ServerCommunicationThread thread;
     private static ClientCommunicationThread clientThread;
     int threshold = 3; //According to Ian using 3 gives better results
@@ -156,8 +163,16 @@ public class FeatureCalculator {
         SendToUnity.setGesture(gestures.get(prediction));
         //SendToUnity.setQuaternion((float) inFeatemg.getValue(0).byteValue(), (float) inFeatemg.getValue(1).byteValue(), (float) inFeatemg.getValue(2).byteValue(), (float) inFeatemg.getValue(3).byteValue());
 
-        // Send predicted Gesture to Bluetooth (HACKberry Arm)
-        SendToHACKBerry.getPrediction(gestures.get(prediction));
+        // Send predicted Gesture (Best out of 10 predictions) to Bluetooth (HACKberry Arm)
+        if(counter == 10){
+            mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()));
+            counter = 0;
+            decisions[counter] = prediction;
+        }else{
+            decisions[counter] = prediction;
+            counter++;
+        }
+
 
         if (prediction == -1) {
             return;
@@ -180,6 +195,8 @@ public class FeatureCalculator {
     public static void sendClasses(List<String> classes) {
         gestures = classes;
     }
+
+    public static void sendCommands(List<String> commands){ hackCommands = commands;}
 
 //    ArrayList<Number> sendList = new ArrayList<Number>();
 
@@ -234,6 +251,28 @@ public class FeatureCalculator {
         thread.start();
         clientThread = new ClientCommunicationThread();
         clientThread.start();
+    }
+
+    public static int getMostFrequent(){
+        int count = 1;
+        int popular = decisions[0];
+        int temp;
+        int tempCount;
+
+        for (int i = 0; i < (decisions.length - 1); i++) {
+            temp = decisions[i];
+            tempCount = 0;
+            for (int j = 1; j < decisions.length; j++) {
+                if (temp == decisions[j])
+                    tempCount++;
+            }
+
+            if (tempCount > count) {
+                popular = temp;
+                count = tempCount;
+            }
+        }
+        return popular;
     }
 
     public void pushFeatureBuffer(byte[] dataBytes) { //actively accepts single EMG arrays and runs calculations when window is reached
@@ -555,6 +594,9 @@ public class FeatureCalculator {
         nFeatures = feats;
     }
 
+    public void startBTConnection(String mac){
+        mBluetoothConnection = new BluetoothConnection(mac);
+    }
 }
 
 //Two dimensional array class made to help in the implementation of featEMG
