@@ -1,5 +1,5 @@
 # MyoHMI Android App
-A mobile Android application used to implement SFSU ICE lab Myo Human Machine Interface Gesture Recognition Algorithms. The original code was developed by Alex D. and other graduate and undergraduate students in the lab.
+A mobile Android application used to implement SFSU ICE lab Myo Human Machine Interface Gesture Recognition Algorithms. The original code was developed by Alex D. and other graduate and undergraduate students in the lab. The previous student who worked on this app was Alex Louie. My original code was pulled from his Github, which can be found here: https://github.com/louiealex/Myo-HMI-Android.
 
 This application is to be paired with Thalmic Labs Myo Armband, a low cost emg/imu wearable sensor. The app connects to the armband via BLE and reads EMG data in real time. EMG signals are subjected to time domain feature extraction and passed to Machine Learning algorithms with the help of the SMILE Java Machine Learning libraries. After proper training, the app can predict most hand gestures.
 
@@ -44,7 +44,7 @@ UPDATES:
   - Allows you to add an associated command to your added gesture that you can send to the HACKberry Arm once the trained ML model predicts your movement
   - If you don't enter an associated command, the default "Rest" command will be sent ("P90 T100 O140")
 
-- java > example.ASPIRE.MyoHMI_Android > ClassificationFragment.java (Modified) (Need final testing)
+- java > example.ASPIRE.MyoHMI_Android > ClassificationFragment.java (Modified) (Needs final testing)
   - Added an ArrayList named "selectedCommands" to store commands that are associated with the selected gestures in the gesture list
   - Added a List that stores the default commands associated to the default selected gestures
   - Added code to make sure the commands in the "selectedCommands" ArrayList and the "selectedItems" ArrayList match
