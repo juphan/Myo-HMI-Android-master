@@ -165,14 +165,14 @@ public class FeatureCalculator {
 
         // Send predicted Gesture (Best out of 10 predictions) to Bluetooth (HACKberry Arm)
         if(counter == 10){
-            mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()));
+            //mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()));  // Send commands to HACKberry Arm
+            mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()) + "\n"); // For testing on Tera Term
             counter = 0;
             decisions[counter] = prediction;
         }else{
             decisions[counter] = prediction;
             counter++;
         }
-
 
         if (prediction == -1) {
             return;

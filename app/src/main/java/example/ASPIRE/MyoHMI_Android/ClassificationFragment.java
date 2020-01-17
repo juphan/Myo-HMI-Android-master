@@ -52,6 +52,7 @@ public class ClassificationFragment extends Fragment {
     private static SaveData saver;
     //    Runnable r1;
     EditText GetValue;
+    EditText GetCommand;
     ImageButton addButton;
     ImageButton deleteButton;
     ImageButton clearButton;
@@ -76,16 +77,17 @@ public class ClassificationFragment extends Fragment {
             "Supination",
             "Pronation"
     };
-    String[] ListCommands = new String[]{
-            "P90 T100 O140",  // Rest
-            "P30 T30 O30",    // Fist
-            "P130 T30 O30",   // Point
-            "P140 T140 O150", // Open Hand
-            "P60 T30 O60",    // Wave-In
-            "P100 T30 O100",  // Wave-Out
-            "P130 T140 O30",  // Supination
-            "P30 T30 O150"    // Pronation
-    };
+    List<String> ListCommands = new ArrayList<>(
+            Arrays.asList("P90 T100 O140",  // Rest
+                          "P30 T30 O30",    // Fist
+                          "P130 T30 O30",   // Point
+                          "P140 T140 O150", // Open Hand
+                          "P60 T30 O60",    // Wave-In
+                          "P100 T30 O100",  // Wave-Out
+                          "P130 T140 O30",  // Supination
+                          "P30 T30 O150"    // Pronation
+            )
+    );
     String[] classifier_options = new String[]{
             "LDA",
             "SVM",
@@ -173,6 +175,7 @@ public class ClassificationFragment extends Fragment {
 
         liveView = (TextView) v.findViewById(R.id.gesture_detected);
         GetValue = (EditText) v.findViewById(R.id.add_gesture_text);
+        GetCommand = (EditText) v.findViewById(R.id.add_command_text);
         trainButton = (ImageButton) v.findViewById(R.id.bt_train);
         loadButton = (ImageButton) v.findViewById(R.id.bt_load);
         addButton = (ImageButton) v.findViewById(R.id.im_add);
@@ -199,10 +202,11 @@ public class ClassificationFragment extends Fragment {
 
         // Add default selected gestures to an arraylist
         selectedItems = new ArrayList<>();
+        selectedCommands = new ArrayList<>();
         for (int i = 0; i < ListElements.length; i++) {
             listview.setItemChecked(i, true);
             selectedItems.add(i, adapter.getItem(i));
-            selectedCommands.add(i, ListCommands[i]);
+            selectedCommands.add(i, ListCommands.get(i));
         }
 
         // Add/Remove selected gestures in the arraylist
@@ -218,6 +222,7 @@ public class ClassificationFragment extends Fragment {
             for (int i = 0; i < adapter.getCount(); i++) {
                 if (adapter.getItem(i) == selectedItem) {
                     selectedItems.add(sCount, selectedItem);
+                    selectedCommands.add(sCount, ListCommands.get(i));
                     Log.d("Selected Gestures", String.valueOf(selectedItems));
                     return;
                 }
@@ -232,6 +237,15 @@ public class ClassificationFragment extends Fragment {
             String Classifier_selectedItem = ((TextView) view).getText().toString();
             Toast.makeText(getActivity(), "selected: " + Classifier_selectedItem, Toast.LENGTH_SHORT).show();
         });
+
+        // Start Bluetooth connection if a BT device was selected
+        Intent intent = getActivity().getIntent();
+        String deviceHack = intent.getStringExtra(ListActivity.HACK);
+
+        Log.d("ClassificationFragment", "Incoming: " + deviceHack);
+        if(deviceHack != null){
+            fcalc.startBTConnection(deviceHack);
+        }
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,6 +268,7 @@ public class ClassificationFragment extends Fragment {
                                 for (int i = 0; i < selectedItems.size(); ++i) {
                                     String item = selectedItems.get(i);
                                     for (int x = 0; x <= item.length(); ++x) {
+                                        ListCommands.remove(selectedItems.indexOf(item)); //
                                         selectedCommands.remove(selectedItems.indexOf(item));
                                         selectedItems.remove(item); //remove deselected item from the list of selected items
                                         listview.setItemChecked(x, false);
@@ -277,20 +292,26 @@ public class ClassificationFragment extends Fragment {
         });
 
         addButton.setOnClickListener(v12 -> {
-
             try {
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(getActivity().getCurrentFocus().getWindowToken(), 0);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
             String newGesture = GetValue.getText().toString();
+            String newCommand = GetCommand.getText().toString();
+            if(newCommand.isEmpty()){
+                newCommand = "P90 T100 O140"; // Rest
+            }
 
             if (newGesture.matches("")) {
                 Toast.makeText(getActivity(), "Please Enter A Gesture", Toast.LENGTH_SHORT).show();
             } else {
                 ListElementsArrayList.add(GetValue.getText().toString());
+                ListCommands.add(newCommand);
                 GetValue.setText("");
+                GetCommand.setText("");
                 adapter.notifyDataSetChanged();
             }
         });
@@ -317,14 +338,6 @@ public class ClassificationFragment extends Fragment {
         trainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = getActivity().getIntent();
-                String deviceHack = intent.getStringExtra(ListActivity.HACK);
-
-                Log.d("ClassificationFragment", "Incoming: " + deviceHack);
-                if(deviceHack != null){
-                    fcalc.startBTConnection(deviceHack);
-                }
-
                 countdown();
             }
         });
