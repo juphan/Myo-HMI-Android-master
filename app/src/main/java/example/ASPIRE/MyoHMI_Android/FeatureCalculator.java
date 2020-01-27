@@ -164,9 +164,9 @@ public class FeatureCalculator {
         //SendToUnity.setQuaternion((float) inFeatemg.getValue(0).byteValue(), (float) inFeatemg.getValue(1).byteValue(), (float) inFeatemg.getValue(2).byteValue(), (float) inFeatemg.getValue(3).byteValue());
 
         // Send predicted Gesture (Best out of 10 predictions) to Bluetooth (HACKberry Arm)
+        //mBluetoothConnection.sendPredictions(gestures.get(prediction));  // Send predicted gestures
         if(counter == 10){
-            //mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()));  // Send commands to HACKberry Arm
-            mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent()) + "\n"); // For testing on Tera Term
+            mBluetoothConnection.sendPredictions(hackCommands.get(getMostFrequent())); // Send commands
             counter = 0;
             decisions[counter] = prediction;
         }else{
